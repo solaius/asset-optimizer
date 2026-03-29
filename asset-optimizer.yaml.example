@@ -1,6 +1,7 @@
 # Asset Optimizer Configuration
 # Copy to asset-optimizer.yaml and customize.
 # Supports ${ENV_VAR} interpolation for secrets.
+# Environment variables in .env override values here.
 
 storage:
   backend: sqlite                    # sqlite | postgres
@@ -9,34 +10,41 @@ storage:
 
 providers:
   text:
-    default: claude
+    default: ${AO_DEFAULT_TEXT_PROVIDER}
     claude:
       api_key: ${ANTHROPIC_API_KEY}
       model: claude-sonnet-4-20250514
     openai:
       api_key: ${OPENAI_API_KEY}
       model: gpt-4o
+    gemini:
+      api_key: ${GEMINI_API_KEY}
+      model: gemini-2.0-flash
     # vllm:
-    #   base_url: http://localhost:8000/v1
-    #   model: meta-llama/Llama-3-70B
+    #   base_url: ${VLLM_BASE_URL}
+    #   model: ${VLLM_MODEL}
+    #   api_key: ${VLLM_API_KEY}
     # ollama:
-    #   base_url: http://localhost:11434/v1
-    #   model: llama3
+    #   base_url: ${OLLAMA_BASE_URL}
+    #   model: ${OLLAMA_MODEL}
   image:
-    default: openai_image
+    default: ${AO_DEFAULT_IMAGE_PROVIDER}
     openai_image:
       api_key: ${OPENAI_API_KEY}
-      model: image-01
-    # nano_banana:
-    #   api_key: ${NANO_BANANA_API_KEY}
-    #   endpoint: https://api.nanobanana.com/v1
+      model: dall-e-3
+    nano_banana:
+      api_key: ${NANO_BANANA_API_KEY}
+      endpoint: ${NANO_BANANA_ENDPOINT}
+  judge:
+    provider: ${AO_JUDGE_PROVIDER}   # blank = same as text default
+    model: ${AO_JUDGE_MODEL}
 
 server:
   host: 0.0.0.0
   port: 8000
 
 defaults:
-  max_iterations: 20
-  min_improvement: 0.01
-  convergence_strategy: greedy       # greedy | target | budget
-  stagnation_limit: 5
+  max_iterations: ${AO_MAX_ITERATIONS}
+  min_improvement: ${AO_MIN_IMPROVEMENT}
+  convergence_strategy: ${AO_CONVERGENCE_STRATEGY}
+  stagnation_limit: ${AO_STAGNATION_LIMIT}
