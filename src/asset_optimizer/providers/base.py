@@ -20,6 +20,7 @@ class Criterion:
     description: str
     max_score: float = 10.0
     rubric: str = ""
+    requires_image: bool = False
 
 
 @dataclass

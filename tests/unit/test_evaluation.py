@@ -2,7 +2,23 @@ from pathlib import Path
 
 import yaml
 
-from asset_optimizer.core.evaluation import EvaluationConfig, load_evaluation
+from asset_optimizer.core.evaluation import (
+    CriterionConfig,
+    EvaluationConfig,
+    load_evaluation,
+)
+
+
+class TestCriterionConfig:
+    def test_requires_image_defaults_false(self) -> None:
+        criterion = CriterionConfig(name="clarity", description="Is it clear?")
+        assert criterion.requires_image is False
+
+    def test_requires_image_set_true(self) -> None:
+        criterion = CriterionConfig(
+            name="visual_appeal", description="Does it look good?", requires_image=True
+        )
+        assert criterion.requires_image is True
 
 
 class TestEvaluationConfig:
@@ -66,6 +82,7 @@ class TestLoadEvaluation:
 
     def test_load_missing_file_raises(self) -> None:
         import pytest
+
         with pytest.raises(FileNotFoundError):
             load_evaluation(Path("/nonexistent/eval.yaml"))
 
@@ -75,5 +92,6 @@ class TestLoadEvaluation:
         path.write_text(yaml.dump(eval_data))
 
         import pytest
+
         with pytest.raises(ValueError, match="at least one criterion"):
             load_evaluation(path)

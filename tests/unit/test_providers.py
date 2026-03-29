@@ -28,6 +28,16 @@ class TestMessageTypes:
         assert c.name == "clarity"
         assert c.max_score == 10
 
+    def test_criterion_requires_image_default(self) -> None:
+        c = Criterion(name="clarity", description="Is it clear?")
+        assert c.requires_image is False
+
+    def test_criterion_requires_image_true(self) -> None:
+        c = Criterion(
+            name="visual_appeal", description="Does it look good?", requires_image=True
+        )
+        assert c.requires_image is True
+
     def test_judgment_result(self) -> None:
         scores = [JudgmentScore(criterion="clarity", score=8.0, reasoning="Very clear")]
         result = JudgmentResult(scores=scores)

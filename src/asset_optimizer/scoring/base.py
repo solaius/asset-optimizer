@@ -13,6 +13,7 @@ class ScoreResult:
     max_value: float = 10.0
     scorer_type: str = "heuristic"
     details: dict[str, object] = field(default_factory=dict)
+    cost: float | None = None
 
 
 class Scorer(ABC):
