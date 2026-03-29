@@ -24,6 +24,14 @@ _JSON_FORMAT = (
 )
 
 
+_VISION_MODELS = {
+    "gemini-2.5-pro",
+    "gemini-2.0-flash",
+    "gemini-1.5-pro",
+    "gemini-1.5-flash",
+}
+
+
 class GeminiProvider(TextProvider):
     """Text provider backed by Google's Gemini generative AI API."""
 
@@ -60,6 +68,12 @@ class GeminiProvider(TextProvider):
         image_format: str = "png",
     ) -> JudgmentResult:
         """Judge content against criteria using the Gemini model."""
+        if image is not None and self.model not in _VISION_MODELS:
+            raise ValueError(
+                f"Model {self.model} does not support vision. "
+                f"Use one of: {', '.join(sorted(_VISION_MODELS))}"
+            )
+
         criteria_text = "\n".join(
             f"- {c.name} (max {c.max_score}): {c.description}"
             + (f"\n  Rubric: {c.rubric}" if c.rubric else "")
@@ -72,7 +86,24 @@ class GeminiProvider(TextProvider):
             "Respond with a JSON object in this exact format "
             f"(no markdown, raw JSON only):\n{_JSON_FORMAT}"
         )
-        response_text = await self.complete([Message(role="user", content=prompt)])
+
+        if image is not None:
+            parts: list[object] = [
+                prompt,
+                {
+                    "inline_data": {
+                        "mime_type": f"image/{image_format}",
+                        "data": image,
+                    }
+                },
+            ]
+            response = await self._generative_model.generate_content_async(parts)
+            response_text = str(response.text) if response.text else ""
+        else:
+            response_text = await self.complete(
+                [Message(role="user", content=prompt)]
+            )
+
         return self._parse_judgment(response_text, criteria)
 
     def _parse_judgment(

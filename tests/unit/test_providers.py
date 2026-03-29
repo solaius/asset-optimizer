@@ -150,6 +150,107 @@ class TestMultimodalJudge:
         assert len(result.scores) == 1
 
 
+class TestAnthropicMultimodalJudge:
+    @pytest.mark.asyncio
+    async def test_judge_with_image_builds_multimodal_message(self) -> None:
+        from unittest.mock import AsyncMock, MagicMock
+
+        from asset_optimizer.providers.anthropic_provider import AnthropicProvider
+
+        provider = AnthropicProvider(
+            model="claude-sonnet-4-20250514", api_key="sk-test"
+        )
+
+        mock_response = MagicMock()
+        mock_block = MagicMock()
+        mock_block.text = (
+            '{"scores": [{"criterion": "visual_quality",'
+            ' "score": 7.0, "reasoning": "good"}]}'
+        )
+        mock_response.content = [mock_block]
+
+        provider._client.messages.create = AsyncMock(return_value=mock_response)
+
+        criteria = [
+            Criterion(name="visual_quality", description="Sharp?", requires_image=True),
+        ]
+        result = await provider.judge(
+            "a sunset", criteria, image=b"fake-png-bytes", image_format="png"
+        )
+        assert result.scores[0].score == 7.0
+
+    @pytest.mark.asyncio
+    async def test_judge_rejects_non_vision_model(self) -> None:
+        from asset_optimizer.providers.anthropic_provider import AnthropicProvider
+
+        provider = AnthropicProvider(
+            model="claude-3-haiku-20240307", api_key="sk-test",
+        )
+        criteria = [
+            Criterion(
+                name="visual_quality",
+                description="Sharp?",
+                requires_image=True,
+            )
+        ]
+        with pytest.raises(ValueError, match="does not support vision"):
+            await provider.judge("test", criteria, image=b"fake")
+
+
+class TestGeminiMultimodalJudge:
+    @pytest.mark.asyncio
+    async def test_judge_with_image(self) -> None:
+        from unittest.mock import AsyncMock, MagicMock, patch
+
+        from asset_optimizer.providers.gemini_provider import GeminiProvider
+
+        with patch("google.generativeai.configure"), \
+             patch("google.generativeai.GenerativeModel"):
+            provider = GeminiProvider(model="gemini-2.5-pro", api_key="test-key")
+
+            mock_response = MagicMock()
+            mock_response.text = (
+                '{"scores": [{"criterion": "visual_quality",'
+                ' "score": 8.5, "reasoning": "excellent"}]}'
+            )
+            provider._generative_model.generate_content_async = (
+                AsyncMock(return_value=mock_response)
+            )
+
+            criteria = [
+                Criterion(
+                    name="visual_quality",
+                    description="Sharp?",
+                    requires_image=True,
+                ),
+            ]
+            result = await provider.judge(
+                "a sunset", criteria, image=b"fake-png-bytes", image_format="png"
+            )
+            assert result.scores[0].score == 8.5
+
+    @pytest.mark.asyncio
+    async def test_judge_rejects_non_vision_model(self) -> None:
+        from unittest.mock import patch
+
+        from asset_optimizer.providers.gemini_provider import GeminiProvider
+
+        with patch("google.generativeai.configure"), \
+             patch("google.generativeai.GenerativeModel"):
+            provider = GeminiProvider(
+                model="gemini-1.0-pro", api_key="test-key",
+            )
+            criteria = [
+                Criterion(
+                    name="visual_quality",
+                    description="Sharp?",
+                    requires_image=True,
+                )
+            ]
+            with pytest.raises(ValueError, match="does not support vision"):
+                await provider.judge("test", criteria, image=b"fake")
+
+
 class TestOpenAIMultimodalJudge:
     @pytest.mark.asyncio
     async def test_judge_builds_multimodal_message(self) -> None:

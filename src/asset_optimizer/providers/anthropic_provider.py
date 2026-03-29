@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64 as _base64
 import json
 
 import anthropic
@@ -23,6 +24,16 @@ _JSON_FORMAT = (
     '{"scores": [{"criterion": "<name>", "score": <number>,'
     ' "reasoning": "<text>"}, ...]}'
 )
+
+
+_VISION_MODELS = {
+    "claude-sonnet-4-20250514",
+    "claude-opus-4-20250514",
+    "claude-3-5-sonnet-latest",
+    "claude-3-5-sonnet-20241022",
+    "claude-3-opus-20240229",
+    "claude-3-sonnet-20240229",
+}
 
 
 class AnthropicProvider(TextProvider):
@@ -82,6 +93,12 @@ class AnthropicProvider(TextProvider):
         image_format: str = "png",
     ) -> JudgmentResult:
         """Judge content against criteria using the Anthropic model."""
+        if image is not None and self.model not in _VISION_MODELS:
+            raise ValueError(
+                f"Model {self.model} does not support vision. "
+                f"Use one of: {', '.join(sorted(_VISION_MODELS))}"
+            )
+
         criteria_text = "\n".join(
             f"- {c.name} (max {c.max_score}): {c.description}"
             + (f"\n  Rubric: {c.rubric}" if c.rubric else "")
@@ -94,7 +111,37 @@ class AnthropicProvider(TextProvider):
             "Respond with a JSON object in this exact format "
             f"(no markdown, raw JSON only):\n{_JSON_FORMAT}"
         )
-        response_text = await self.complete([Message(role="user", content=prompt)])
+
+        if image is not None:
+            b64_data = _base64.b64encode(image).decode("ascii")
+            multimodal_messages: list[dict[str, object]] = [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image",
+                            "source": {
+                                "type": "base64",
+                                "media_type": f"image/{image_format}",
+                                "data": b64_data,
+                            },
+                        },
+                        {"type": "text", "text": prompt},
+                    ],
+                }
+            ]
+            response = await self._client.messages.create(
+                model=self.model,
+                max_tokens=self.max_tokens,
+                messages=multimodal_messages,  # type: ignore[arg-type]
+            )
+            block = response.content[0] if response.content else None
+            response_text = str(block.text) if block and hasattr(block, "text") else ""
+        else:
+            response_text = await self.complete(
+                [Message(role="user", content=prompt)]
+            )
+
         return self._parse_judgment(response_text, criteria)
 
     def _parse_judgment(
