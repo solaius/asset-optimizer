@@ -1,0 +1,36 @@
+name: prompt-clarity
+asset_type: prompt
+description: Evaluates prompt clarity, specificity, and effectiveness
+
+criteria:
+  - name: clarity
+    description: "Is the prompt unambiguous and easy to understand?"
+    max_score: 10
+    rubric: |
+      1-3: Vague, multiple interpretations possible
+      4-6: Mostly clear but some ambiguity
+      7-9: Clear and specific
+      10: Crystal clear, no room for misinterpretation
+
+  - name: specificity
+    description: "Does the prompt include specific, actionable instructions?"
+    max_score: 10
+    rubric: |
+      1-3: Generic instructions, no concrete guidance
+      4-6: Some specifics but leaves gaps
+      7-9: Detailed, actionable instructions
+      10: Exhaustively specific with examples
+
+  - name: effectiveness
+    description: "Would this prompt reliably produce the desired output?"
+    max_score: 10
+    rubric: |
+      1-3: Unreliable, inconsistent results expected
+      4-6: Sometimes produces desired output
+      7-9: Reliably produces good output
+      10: Consistently produces excellent output
+
+scorer_config:
+  type: composite
+  heuristic_weight: 0.2
+  ai_judge_weight: 0.8
