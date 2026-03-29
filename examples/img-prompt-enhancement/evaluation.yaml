@@ -1,0 +1,96 @@
+# Evaluation criteria for Luminth landing page hero image prompt
+#
+# This evaluation scores the TEXT of an image generation prompt — not the
+# generated image itself. It measures whether the prompt gives an image
+# generator enough specific, actionable direction to produce a hero image
+# that matches Luminth's visual identity and marketing goals.
+#
+# Visual identity context (from Luminth brand):
+#   - Dark warm palette: brown-black backgrounds, teal/gold accents, parchment text
+#   - Aesthetic: "fantasy-meets-technology" — illuminated manuscript built by engineers
+#   - Genre versatility: must suggest multiple genres (fantasy, sci-fi, cyberpunk, etc.)
+#   - Inspiration: D&D Beyond (illustrated vibrancy) + Raycast/Stripe (polished modules)
+
+name: luminth-hero-prompt
+asset_type: image
+description: >
+  Evaluates image generation prompts for the Luminth.ai landing page hero.
+  Scores whether the prompt provides enough visual direction to produce
+  a dark, vibrant, genre-spanning hero image that communicates
+  "AI-powered world-building platform."
+
+criteria:
+  # --- Does the prompt describe the subject clearly? ---
+  - name: subject_clarity
+    description: >
+      Does the prompt clearly describe WHAT should be in the image?
+      A good prompt names specific visual elements, not vague concepts.
+    max_score: 10
+    rubric: |
+      1-3: Vague ("a fantasy scene"), no concrete visual elements named
+      4-6: Names a few elements but leaves composition ambiguous
+      7-9: Specific subjects, clear spatial relationships, named elements
+      10: Exhaustively described — every major visual element placed and characterized
+
+  # --- Does it capture Luminth's brand aesthetic? ---
+  - name: brand_fidelity
+    description: >
+      Does the prompt encode Luminth's visual identity? Dark warm palette
+      (brown-black, teal, gold), fantasy-meets-technology feel, illuminated
+      manuscript aesthetic, vibrant but not garish.
+    max_score: 10
+    rubric: |
+      1-3: Generic style direction or none; could be any product
+      4-6: Mentions dark theme or fantasy but misses the technology fusion
+      7-9: Captures the dark palette + fantasy-tech blend + specific accent colors
+      10: Fully encodes the brand — palette, texture, mood, and the "illuminated manuscript
+           built by engineers" aesthetic
+
+  # --- Does it communicate genre versatility? ---
+  - name: genre_versatility
+    description: >
+      Does the prompt show that Luminth works across genres? The hero should
+      suggest multiple worlds (fantasy, sci-fi, cyberpunk, horror, etc.)
+      coexisting or transitioning, not just one genre.
+    max_score: 10
+    rubric: |
+      1-3: Single genre only, or no genre elements
+      4-6: Hints at multiple genres but doesn't make it a focal point
+      7-9: Clearly shows 3+ genre fragments coexisting in the composition
+      10: Genre diversity is a central visual theme — worlds collide, blend, or
+           fan out, making it immediately clear this tool handles ANY setting
+
+  # --- Is the composition and layout web-hero-ready? ---
+  - name: composition_direction
+    description: >
+      Does the prompt specify composition suitable for a website hero?
+      Aspect ratio, focal point placement, negative space for text overlay,
+      visual flow, and how it would work as a full-width banner.
+    max_score: 10
+    rubric: |
+      1-3: No layout or composition guidance at all
+      4-6: Mentions "wide" or "banner" but no spatial detail
+      7-9: Specifies aspect ratio, text-safe zones, focal point, and visual hierarchy
+      10: Full art direction — aspect ratio, rule-of-thirds placement, gradient fade
+           zones for text, depth layers, and how the eye should travel
+
+  # --- Technical quality of the prompt itself ---
+  - name: generation_effectiveness
+    description: >
+      Is the prompt well-structured for modern image generation models?
+      Uses effective prompt engineering: front-loads important elements,
+      includes style keywords, medium, lighting, and avoids ambiguity
+      that would confuse the model.
+    max_score: 10
+    rubric: |
+      1-3: Run-on sentence, vague adjectives, no style keywords
+      4-6: Some structure but buries key details or uses ambiguous terms
+      7-9: Well-ordered with style keywords, medium, lighting, and clear priority
+      10: Expert-level prompt engineering — weighted emphasis, negative constraints,
+           style anchors, lighting direction, and medium specification
+
+scorer_config:
+  type: composite
+  # Pure AI-judged scoring since we're evaluating prompt quality holistically
+  heuristic_weight: 0.0
+  ai_judge_weight: 1.0

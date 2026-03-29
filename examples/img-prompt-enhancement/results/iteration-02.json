@@ -1,0 +1,38 @@
+{
+  "iteration": 2,
+  "score": 9.0,
+  "accepted": true,
+  "scores": [
+    {
+      "criterion": "subject_clarity",
+      "value": 9.0,
+      "max_value": 10.0,
+      "reasoning": "The prompt provides clear visual elements and spatial relationships, such as a steampunk cityscape on the left, an elven forest in the center, and a dragon-guarded castle on the right, adhering to the rule-of-thirds. The composition is well-defined with specific subjects mentioned."
+    },
+    {
+      "criterion": "brand_fidelity",
+      "value": 10.0,
+      "max_value": 10.0,
+      "reasoning": "The prompt fully encodes Luminth's visual identity, specifying a dark warm palette with brown-black, teal, and gold. It blends fantasy and technology and describes an illuminated manuscript aesthetic, capturing the desired mood and texture accurately."
+    },
+    {
+      "criterion": "genre_versatility",
+      "value": 7.0,
+      "max_value": 10.0,
+      "reasoning": "The prompt clearly shows fragments of multiple genres, including fantasy (elven forest, dragon-guarded castle) and technology (steampunk cityscape), but it could make their coexistence more central by explicitly mentioning more genres."
+    },
+    {
+      "criterion": "composition_direction",
+      "value": 10.0,
+      "max_value": 10.0,
+      "reasoning": "The prompt extensively details the composition for a website hero image, specifying a 16:9 aspect ratio, rule-of-thirds for focal point placement, gradient fade zones for text overlay, and a visual flow guiding the viewer's eye from left to right."
+    },
+    {
+      "criterion": "generation_effectiveness",
+      "value": 9.0,
+      "max_value": 10.0,
+      "reasoning": "The prompt is well-structured for modern image generation models with style keywords like illuminated manuscript, fantasy-meets-technology, and specifies lighting, medium, and focus areas. It avoids ambiguity but could benefit from specifying any negative constraints."
+    }
+  ],
+  "prompt": "Create a captivating fantasy-themed hero image for Luminth, an AI world-building platform, designed for a website landing page. Utilize a 16:9 aspect ratio with the central focal point adhering to the rule-of-thirds. Embrace Luminth's visual identity by incorporating a dark warm palette featuring brown-black, teal, and gold, and striking a balance between fantasy and technology. Capture an illuminated manuscript aesthetic infused with vibrant yet refined elements. On the dark background, create layered depth with magical components: a towering steampunk cityscape on the left, a serene elven forest in the center, and a fiery dragon-guarded castle on the right. Integrate gradient fade zones at the top and bottom for seamless text overlay. Utilize dynamic elements to guide the viewer's eye from left to right, maintaining balance. Position the platform\u2019s logo in the upper third, ensuring clarity through sufficient negative space."
+}
