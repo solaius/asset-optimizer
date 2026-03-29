@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64 as _base64
 import json
 
 import openai
@@ -22,6 +23,9 @@ _JSON_FORMAT = (
     '{"scores": [{"criterion": "<name>", "score": <number>,'
     ' "reasoning": "<text>"}, ...]}'
 )
+
+
+_VISION_MODELS = {"gpt-4o", "gpt-4o-mini", "gpt-4-turbo"}
 
 
 class OpenAITextProvider(TextProvider):
@@ -52,8 +56,20 @@ class OpenAITextProvider(TextProvider):
         content = response.choices[0].message.content
         return content if content is not None else ""
 
-    async def judge(self, content: str, criteria: list[Criterion]) -> JudgmentResult:
+    async def judge(
+        self,
+        content: str,
+        criteria: list[Criterion],
+        image: bytes | None = None,
+        image_format: str = "png",
+    ) -> JudgmentResult:
         """Judge content against criteria using the OpenAI model."""
+        if image is not None and self.model not in _VISION_MODELS:
+            raise ValueError(
+                f"Model {self.model} does not support vision. "
+                f"Use one of: {', '.join(sorted(_VISION_MODELS))}"
+            )
+
         criteria_text = "\n".join(
             f"- {c.name} (max {c.max_score}): {c.description}"
             + (f"\n  Rubric: {c.rubric}" if c.rubric else "")
@@ -65,10 +81,36 @@ class OpenAITextProvider(TextProvider):
             f"Criteria:\n{criteria_text}\n\n"
             f"Respond with a JSON object in this exact format:\n{_JSON_FORMAT}"
         )
-        response_text = await self.complete(
-            [Message(role="user", content=prompt)],
-            response_format={"type": "json_object"},
-        )
+
+        if image is not None:
+            b64_data = _base64.b64encode(image).decode("ascii")
+            oai_messages: list[dict[str, object]] = [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/{image_format};base64,{b64_data}",
+                                "detail": "high",
+                            },
+                        },
+                    ],
+                }
+            ]
+            response = await self._client.chat.completions.create(  # type: ignore[call-overload]
+                model=self.model,
+                messages=oai_messages,
+                response_format={"type": "json_object"},
+            )
+            response_text = response.choices[0].message.content or ""
+        else:
+            response_text = await self.complete(
+                [Message(role="user", content=prompt)],
+                response_format={"type": "json_object"},
+            )
+
         return self._parse_judgment(response_text, criteria)
 
     def _parse_judgment(

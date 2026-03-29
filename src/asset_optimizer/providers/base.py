@@ -57,6 +57,12 @@ class TextProvider(ABC):
         ...
 
     @abstractmethod
-    async def judge(self, content: str, criteria: list[Criterion]) -> JudgmentResult:
+    async def judge(
+        self,
+        content: str,
+        criteria: list[Criterion],
+        image: bytes | None = None,
+        image_format: str = "png",
+    ) -> JudgmentResult:
         """Judge content against a list of criteria and return scores."""
         ...

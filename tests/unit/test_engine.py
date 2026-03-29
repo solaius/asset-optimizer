@@ -32,7 +32,13 @@ class MockProvider(TextProvider):
             "Clear, specific, and actionable instructions for the assistant."
         )
 
-    async def judge(self, content: str, criteria: list[Criterion]) -> JudgmentResult:
+    async def judge(
+        self,
+        content: str,
+        criteria: list[Criterion],
+        image: bytes | None = None,
+        image_format: str = "png",
+    ) -> JudgmentResult:
         base = min(9.0, len(content) / 20.0)
         return JudgmentResult(
             scores=[
@@ -48,7 +54,13 @@ class DegradingProvider(TextProvider):
     async def complete(self, messages: list[Message], **kwargs: Any) -> str:
         return "Bad"
 
-    async def judge(self, content: str, criteria: list[Criterion]) -> JudgmentResult:
+    async def judge(
+        self,
+        content: str,
+        criteria: list[Criterion],
+        image: bytes | None = None,
+        image_format: str = "png",
+    ) -> JudgmentResult:
         return JudgmentResult(
             scores=[
                 JudgmentScore(criterion=c.name, score=1.0, reasoning="poor")

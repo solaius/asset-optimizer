@@ -53,7 +53,13 @@ class FakeTextProvider(TextProvider):
     async def complete(self, messages: list[Message], **kwargs: object) -> str:
         return "fake response"
 
-    async def judge(self, content: str, criteria: list[Criterion]) -> JudgmentResult:
+    async def judge(
+        self,
+        content: str,
+        criteria: list[Criterion],
+        image: bytes | None = None,
+        image_format: str = "png",
+    ) -> JudgmentResult:
         return JudgmentResult(
             scores=[
                 JudgmentScore(criterion=c.name, score=5.0, reasoning="ok")
@@ -121,3 +127,69 @@ class TestProviderRegistry:
         registry.register_text("main", provider)
         registry.set_default_text("main")
         assert registry.get_default_text() is provider
+
+
+class TestMultimodalJudge:
+    @pytest.mark.asyncio
+    async def test_judge_with_image(self) -> None:
+        provider = FakeTextProvider()
+        criteria = [
+            Criterion(name="visual_quality", description="Sharp?", requires_image=True),
+        ]
+        result = await provider.judge(
+            "a sunset", criteria, image=b"fake-png-data", image_format="png"
+        )
+        assert len(result.scores) == 1
+        assert result.scores[0].criterion == "visual_quality"
+
+    @pytest.mark.asyncio
+    async def test_judge_without_image(self) -> None:
+        provider = FakeTextProvider()
+        criteria = [Criterion(name="clarity", description="Clear?")]
+        result = await provider.judge("test content", criteria)
+        assert len(result.scores) == 1
+
+
+class TestOpenAIMultimodalJudge:
+    @pytest.mark.asyncio
+    async def test_judge_builds_multimodal_message(self) -> None:
+        from unittest.mock import AsyncMock, MagicMock
+
+        from asset_optimizer.providers.openai_provider import OpenAITextProvider
+
+        provider = OpenAITextProvider(model="gpt-4o", api_key="sk-test")
+
+        mock_response = MagicMock()
+        mock_choice = MagicMock()
+        mock_choice.message.content = (
+            '{"scores": [{"criterion": "visual_quality",'
+            ' "score": 8.0, "reasoning": "sharp"}]}'
+        )
+        mock_response.choices = [mock_choice]
+        provider._client.chat.completions.create = AsyncMock(  # type: ignore[method-assign]
+            return_value=mock_response
+        )
+
+        criteria = [
+            Criterion(name="visual_quality", description="Sharp?", requires_image=True),
+        ]
+        result = await provider.judge(
+            "a sunset", criteria, image=b"fake-png-bytes", image_format="png"
+        )
+        assert result.scores[0].score == 8.0
+        # Verify multimodal message was sent
+        call_kwargs = provider._client.chat.completions.create.call_args
+        messages = call_kwargs.kwargs.get("messages") or call_kwargs[1].get("messages")
+        assert messages is not None
+        assert any(isinstance(m.get("content"), list) for m in messages)
+
+    @pytest.mark.asyncio
+    async def test_judge_rejects_non_vision_model(self) -> None:
+        from asset_optimizer.providers.openai_provider import OpenAITextProvider
+
+        provider = OpenAITextProvider(model="gpt-3.5-turbo", api_key="sk-test")
+        criteria = [
+            Criterion(name="visual_quality", description="Sharp?", requires_image=True)
+        ]
+        with pytest.raises(ValueError, match="does not support vision"):
+            await provider.judge("test", criteria, image=b"fake")

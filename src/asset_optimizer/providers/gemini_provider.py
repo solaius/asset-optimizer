@@ -52,7 +52,13 @@ class GeminiProvider(TextProvider):
         )
         return str(response.text) if response.text else ""
 
-    async def judge(self, content: str, criteria: list[Criterion]) -> JudgmentResult:
+    async def judge(
+        self,
+        content: str,
+        criteria: list[Criterion],
+        image: bytes | None = None,
+        image_format: str = "png",
+    ) -> JudgmentResult:
         """Judge content against criteria using the Gemini model."""
         criteria_text = "\n".join(
             f"- {c.name} (max {c.max_score}): {c.description}"

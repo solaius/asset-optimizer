@@ -74,7 +74,13 @@ class AnthropicProvider(TextProvider):
             return str(block.text)
         return ""
 
-    async def judge(self, content: str, criteria: list[Criterion]) -> JudgmentResult:
+    async def judge(
+        self,
+        content: str,
+        criteria: list[Criterion],
+        image: bytes | None = None,
+        image_format: str = "png",
+    ) -> JudgmentResult:
         """Judge content against criteria using the Anthropic model."""
         criteria_text = "\n".join(
             f"- {c.name} (max {c.max_score}): {c.description}"
