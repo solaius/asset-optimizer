@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: asset-optimizer
+  labels:
+    app: asset-optimizer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: asset-optimizer
+  template:
+    metadata:
+      labels:
+        app: asset-optimizer
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: asset-optimizer
+          image: asset-optimizer:latest
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: asset-optimizer-config
+            - secretRef:
+                name: asset-optimizer-secrets
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: 8000
+            initialDelaySeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health/ready
+              port: 8000
+            initialDelaySeconds: 5
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+            requests:
+              cpu: 250m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: asset-optimizer
+spec:
+  ports:
+    - port: 8000
+      targetPort: 8000
+  selector:
+    app: asset-optimizer

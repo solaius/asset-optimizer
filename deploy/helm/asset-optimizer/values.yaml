@@ -1,0 +1,29 @@
+replicaCount: 1
+
+image:
+  repository: asset-optimizer
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8000
+
+resources:
+  limits:
+    cpu: "1"
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+env: []
+
+persistence:
+  enabled: true
+  size: 1Gi
+  storageClass: ""
+
+ingress:
+  enabled: false
+  host: ""
