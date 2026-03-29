@@ -51,7 +51,9 @@ PROJECT_ROOT = EXAMPLE_DIR.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from asset_optimizer import Engine, load_evaluation  # noqa: E402
+from asset_optimizer.providers.base import Criterion  # noqa: E402
 from asset_optimizer.providers.factory import create_text_provider  # noqa: E402
+from asset_optimizer.scoring.ai_judge import AIJudgeScorer  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -136,12 +138,52 @@ async def main() -> None:
     print()
 
     # ------------------------------------------------------------------
-    # 4. Create the engine and run the optimization loop
+    # 4. Score the baseline BEFORE optimization
+    #    This gives us the full per-criterion review of the starting
+    #    prompt, saved as iteration-00.json so every score is traceable.
+    # ------------------------------------------------------------------
+    criteria = [
+        Criterion(
+            name=c.name,
+            description=c.description,
+            max_score=c.max_score,
+            rubric=c.rubric,
+        )
+        for c in evaluation.criteria
+    ]
+    scorer = AIJudgeScorer(provider=provider, criteria=criteria)
+    baseline_scores = await scorer.score(starting_prompt)
+    baseline_score = sum(s.value for s in baseline_scores) / len(baseline_scores)
+
+    # Save baseline review as iteration-00
+    baseline_detail = [
+        {
+            "criterion": s.criterion,
+            "value": s.value,
+            "max_value": s.max_value,
+            "reasoning": s.details.get("reasoning", ""),
+        }
+        for s in baseline_scores
+    ]
+    save_iteration(
+        iteration=0,
+        content=starting_prompt,
+        score=baseline_score,
+        scores_detail=baseline_detail,
+        accepted=True,
+    )
+
+    print(f"  Baseline score: {baseline_score:.2f}")
+    print_scores(baseline_detail)
+    print()
+
+    # ------------------------------------------------------------------
+    # 5. Create the engine and run the optimization loop
     # ------------------------------------------------------------------
     engine = Engine(provider=provider, judge_provider=provider)
 
     # Track all iterations for the summary report
-    all_scores: list[list[dict[str, object]]] = []
+    all_scores: list[list[dict[str, object]]] = [baseline_detail]
 
     def on_iteration(info: dict[str, object]) -> None:
         """Callback fired after each iteration — prints progress."""
@@ -167,7 +209,7 @@ async def main() -> None:
     print()
 
     # ------------------------------------------------------------------
-    # 5. Save results for each iteration
+    # 6. Save results for each iteration (1-N; baseline was iteration 0)
     # ------------------------------------------------------------------
     for iter_result in result.iterations:
         scores_detail = [
@@ -189,13 +231,13 @@ async def main() -> None:
         )
 
     # ------------------------------------------------------------------
-    # 6. Save the final optimized prompt
+    # 7. Save the final optimized prompt
     # ------------------------------------------------------------------
     final_path = RESULTS_DIR / "final-prompt.txt"
     final_path.write_text(result.best_content, encoding="utf-8")
 
     # ------------------------------------------------------------------
-    # 7. Save a summary report
+    # 8. Save a summary report
     # ------------------------------------------------------------------
     summary = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -210,7 +252,7 @@ async def main() -> None:
     summary_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
 
     # ------------------------------------------------------------------
-    # 8. Print the final report
+    # 9. Print the final report
     # ------------------------------------------------------------------
     print("RESULTS")
     print("=" * 70)

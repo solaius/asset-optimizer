@@ -1,0 +1,38 @@
+{
+  "iteration": 0,
+  "score": 6.2,
+  "accepted": true,
+  "scores": [
+    {
+      "criterion": "subject_clarity",
+      "value": 6.0,
+      "max_value": 10.0,
+      "reasoning": "The prompt provides a general idea with 'dark background' and 'magical elements,' but lacks concrete placement and detailed descriptions of visual elements. It leaves some ambiguity in composition."
+    },
+    {
+      "criterion": "brand_fidelity",
+      "value": 7.5,
+      "max_value": 10.0,
+      "reasoning": "The prompt hints at Luminth's visual identity with a 'dark background' and 'magical elements,' touching on the fantasy-tech blend, but doesn't fully specify the palette or illuminated manuscript aesthetic."
+    },
+    {
+      "criterion": "genre_versatility",
+      "value": 8.0,
+      "max_value": 10.0,
+      "reasoning": "The prompt successfully indicates versatility by mentioning 'different genre worlds,' implying multiple genres can coexist or transition."
+    },
+    {
+      "criterion": "composition_direction",
+      "value": 4.0,
+      "max_value": 10.0,
+      "reasoning": "The prompt lacks specific composition details like aspect ratio, focal points, or negative space considerations for website hero image functionality."
+    },
+    {
+      "criterion": "generation_effectiveness",
+      "value": 5.5,
+      "max_value": 10.0,
+      "reasoning": "The prompt is somewhat structured but lacks style keywords, medium, and lighting direction. It doesn't effectively prioritize elements or avoid ambiguity for modern image generation models."
+    }
+  ],
+  "prompt": "A fantasy landing page hero image for Luminth, an AI world-building platform. Dark background with magical elements, showing different genre worlds."
+}
