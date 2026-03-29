@@ -15,6 +15,8 @@ export function ExperimentDetail() {
   if (isLoading) return <p>Loading...</p>
   if (!experiment) return <p>Experiment not found.</p>
 
+  const hasImage = !!experiment.best_image_asset_version_id
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -34,15 +36,36 @@ export function ExperimentDetail() {
           <div className="text-sm text-gray-500">Max Iterations</div>
           <div className="font-semibold">{(experiment.config as Record<string, unknown>)?.max_iterations as number || '—'}</div>
         </div>
-        <div className="bg-white rounded-lg border p-4">
-          <div className="text-sm text-gray-500">Created</div>
-          <div className="font-semibold">{new Date(experiment.created_at).toLocaleDateString()}</div>
-        </div>
+        {experiment.total_cost !== null && experiment.total_cost !== undefined ? (
+          <div className="bg-white rounded-lg border p-4">
+            <div className="text-sm text-gray-500">Total Cost</div>
+            <div className="font-semibold">${experiment.total_cost.toFixed(4)}</div>
+          </div>
+        ) : (
+          <div className="bg-white rounded-lg border p-4">
+            <div className="text-sm text-gray-500">Created</div>
+            <div className="font-semibold">{new Date(experiment.created_at).toLocaleDateString()}</div>
+          </div>
+        )}
       </div>
+
+      {hasImage && (
+        <div className="bg-white rounded-lg border p-4">
+          <h2 className="font-semibold mb-4">Best Generated Image</h2>
+          <img
+            src={api.assets.getImageUrl(experiment.best_image_asset_version_id!)}
+            alt="Best generated image"
+            className="max-w-lg rounded-lg border"
+            loading="lazy"
+          />
+        </div>
+      )}
+
       <div className="bg-white rounded-lg border p-4">
         <h2 className="font-semibold mb-4">Score Progression</h2>
         <ScoreChart data={[]} />
       </div>
+
       {experiment.description && (
         <div className="bg-white rounded-lg border p-4">
           <h2 className="font-semibold mb-2">Description</h2>

@@ -17,7 +17,7 @@ export interface Evaluation {
   name: string
   asset_type: string
   description: string
-  criteria: Array<{ name: string; description: string; max_score: number }>
+  criteria: Array<{ name: string; description: string; max_score: number; requires_image?: boolean }>
   scorer_config: Record<string, unknown>
   created_at: string
   updated_at: string
@@ -32,6 +32,8 @@ export interface Experiment {
   status: string
   config: Record<string, unknown>
   best_score: number | null
+  best_image_asset_version_id: string | null
+  total_cost: number | null
   created_at: string
   updated_at: string
 }
@@ -55,5 +57,9 @@ export const api = {
 
   providers: {
     list: () => request<{ text: string[]; image: string[] }>('/providers'),
+  },
+
+  assets: {
+    getImageUrl: (assetVersionId: string) => `${BASE_URL}/assets/${assetVersionId}/image`,
   },
 }
