@@ -1,5 +1,10 @@
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { Dashboard } from './pages/Dashboard'
+import { ExperimentList } from './pages/ExperimentList'
+import { ExperimentDetail } from './pages/ExperimentDetail'
+import { EvaluationList } from './pages/EvaluationList'
+import { ProviderSettings } from './pages/ProviderSettings'
 
 const queryClient = new QueryClient()
 
@@ -19,19 +24,6 @@ function Layout({ children }: { children: React.ReactNode }) {
   )
 }
 
-function Dashboard() {
-  return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-4">Dashboard</h1>
-      <p className="text-gray-600">Welcome to Asset Optimizer.</p>
-    </div>
-  )
-}
-
-function Placeholder({ title }: { title: string }) {
-  return <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
-}
-
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -39,9 +31,10 @@ export default function App() {
         <Layout>
           <Routes>
             <Route path="/" element={<Dashboard />} />
-            <Route path="/experiments" element={<Placeholder title="Experiments" />} />
-            <Route path="/evaluations" element={<Placeholder title="Evaluations" />} />
-            <Route path="/providers" element={<Placeholder title="Providers" />} />
+            <Route path="/experiments" element={<ExperimentList />} />
+            <Route path="/experiments/:id" element={<ExperimentDetail />} />
+            <Route path="/evaluations" element={<EvaluationList />} />
+            <Route path="/providers" element={<ProviderSettings />} />
           </Routes>
         </Layout>
       </BrowserRouter>
