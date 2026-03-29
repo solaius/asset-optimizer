@@ -1,0 +1,57 @@
+name: image-visual
+asset_type: image
+description: Evaluates image generation prompts by scoring both the prompt text and the generated image
+
+criteria:
+  - name: prompt_specificity
+    description: "Does the prompt clearly and specifically describe the desired image?"
+    max_score: 10
+    rubric: |
+      1-3: Vague description, missing key details about subject, style, or composition
+      4-6: Describes the subject but lacks specifics on lighting, perspective, or mood
+      7-9: Detailed prompt with clear subject, style, composition, and mood guidance
+      10: Exhaustively specific with concrete visual references and technical direction
+
+  - name: prompt_style
+    description: "Does the prompt include clear artistic style and aesthetic direction?"
+    max_score: 10
+    rubric: |
+      1-3: No style guidance or contradictory style instructions
+      4-6: Names a style but doesn't elaborate on how it should manifest
+      7-9: Clear style direction with specific references to techniques or artists
+      10: Comprehensive style guide with medium, technique, color palette, and mood
+
+  - name: visual_quality
+    description: "Is the generated image sharp, well-composed, and free of artifacts?"
+    max_score: 10
+    requires_image: true
+    rubric: |
+      1-3: Blurry, distorted, or contains obvious AI artifacts (extra fingers, melted text)
+      4-6: Acceptable quality but has minor issues (slightly soft focus, minor artifacts)
+      7-9: Sharp, clean, well-composed image with good lighting and no visible artifacts
+      10: Professional quality — could be used in production without editing
+
+  - name: visual_relevance
+    description: "Does the generated image accurately depict what the prompt asked for?"
+    max_score: 10
+    requires_image: true
+    rubric: |
+      1-3: Image bears little resemblance to the prompt description
+      4-6: Captures the general idea but misses key details or adds unwanted elements
+      7-9: Accurately depicts the prompt with most details correct
+      10: Perfect match — every element described in the prompt is faithfully rendered
+
+  - name: style_match
+    description: "Does the image reflect the requested artistic style?"
+    max_score: 10
+    requires_image: true
+    rubric: |
+      1-3: Style is completely different from what was requested
+      4-6: Some stylistic elements present but inconsistent or weak
+      7-9: Clear match to the requested style with appropriate techniques visible
+      10: Masterful execution of the requested style — immediately recognizable
+
+scorer_config:
+  type: composite
+  heuristic_weight: 0.1
+  ai_judge_weight: 0.9

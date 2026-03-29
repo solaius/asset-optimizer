@@ -313,7 +313,9 @@ class Engine:
             # Generate image for the new content if image_provider is set
             iter_image: bytes | None = None
             iter_image_format: str = ""
-            iter_image_cost: float | None = 0.0 if self.image_provider is not None else None
+            iter_image_cost: float | None = (
+                0.0 if self.image_provider is not None else None
+            )
 
             if self.image_provider is not None:
                 gen_result = await _generate_image_with_retry(

@@ -9,6 +9,18 @@ from asset_optimizer.core.evaluation import (
 )
 
 
+class TestImageVisualEvaluation:
+    def test_load_image_visual_config(self) -> None:
+        config = load_evaluation(Path("evaluations/image-visual.yaml"))
+        assert config.name == "image-visual"
+        assert config.asset_type == "image"
+        assert len(config.criteria) == 5
+        image_criteria = [c for c in config.criteria if c.requires_image]
+        text_criteria = [c for c in config.criteria if not c.requires_image]
+        assert len(image_criteria) == 3
+        assert len(text_criteria) == 2
+
+
 class TestCriterionConfig:
     def test_requires_image_defaults_false(self) -> None:
         criterion = CriterionConfig(name="clarity", description="Is it clear?")
