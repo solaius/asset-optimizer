@@ -14,11 +14,13 @@ from asset_optimizer.core.evaluation import (
 )
 from asset_optimizer.providers.base import (
     Criterion,
+    ImageResult,
     JudgmentResult,
     JudgmentScore,
     Message,
     TextProvider,
 )
+from asset_optimizer.providers.image_providers.base import ImageProvider
 
 
 class MockProvider(TextProvider):
@@ -67,6 +69,24 @@ class DegradingProvider(TextProvider):
                 for c in criteria
             ]
         )
+
+
+class MockImageProvider(ImageProvider):
+    def __init__(self) -> None:
+        self.call_count = 0
+
+    async def generate(self, prompt: str, **kwargs: object) -> ImageResult:
+        self.call_count += 1
+        return ImageResult(
+            image_data=b"fake-image-" + str(self.call_count).encode(),
+            format="png",
+            metadata={"width": 1024, "height": 1024},
+        )
+
+
+class FailingImageProvider(ImageProvider):
+    async def generate(self, prompt: str, **kwargs: object) -> ImageResult:
+        raise RuntimeError("Content policy violation")
 
 
 @pytest.fixture
@@ -160,3 +180,93 @@ class TestEngine:
             stagnation_limit=2,
         )
         assert result.total_iterations < 20
+
+
+@pytest.fixture
+def image_eval_config() -> EvaluationConfig:
+    return EvaluationConfig(
+        name="test-image-eval",
+        asset_type="image",
+        criteria=[
+            CriterionConfig(
+                name="prompt_specificity",
+                description="Is the prompt specific?",
+            ),
+            CriterionConfig(
+                name="visual_quality",
+                description="Is the image sharp?",
+                requires_image=True,
+            ),
+        ],
+        scorer_config=ScorerConfig(
+            type="composite", ai_judge_weight=1.0, heuristic_weight=0.0
+        ),
+    )
+
+
+class TestEngineWithImageProvider:
+    @pytest.mark.asyncio
+    async def test_optimize_with_image_provider(
+        self, image_eval_config: EvaluationConfig
+    ) -> None:
+        provider = MockProvider()
+        image_provider = MockImageProvider()
+        engine = Engine(
+            provider=provider, judge_provider=provider, image_provider=image_provider
+        )
+        result = await engine.optimize(
+            content="A beautiful sunset over mountains",
+            evaluation=image_eval_config,
+            max_iterations=2,
+        )
+        assert result.best_image is not None
+        assert result.best_image_format == "png"
+        assert image_provider.call_count >= 1
+        assert result.iterations[0].image_data is not None
+
+    @pytest.mark.asyncio
+    async def test_optimize_without_image_provider_unchanged(
+        self, eval_config: EvaluationConfig
+    ) -> None:
+        provider = MockProvider()
+        engine = Engine(provider=provider, judge_provider=provider)
+        result = await engine.optimize(
+            content="You are a helpful assistant.",
+            evaluation=eval_config,
+            max_iterations=2,
+        )
+        assert result.best_image is None
+        assert result.stopped_early is False
+
+    @pytest.mark.asyncio
+    async def test_optimize_stops_on_image_failure(
+        self, image_eval_config: EvaluationConfig
+    ) -> None:
+        provider = MockProvider()
+        image_provider = FailingImageProvider()
+        engine = Engine(
+            provider=provider, judge_provider=provider, image_provider=image_provider
+        )
+        result = await engine.optimize(
+            content="A sunset",
+            evaluation=image_eval_config,
+            max_iterations=5,
+        )
+        assert result.stopped_early is True
+        assert "image generation failed" in result.stop_reason.lower()
+
+    @pytest.mark.asyncio
+    async def test_optimize_tracks_total_cost(
+        self, image_eval_config: EvaluationConfig
+    ) -> None:
+        provider = MockProvider()
+        image_provider = MockImageProvider()
+        engine = Engine(
+            provider=provider, judge_provider=provider, image_provider=image_provider
+        )
+        result = await engine.optimize(
+            content="A sunset",
+            evaluation=image_eval_config,
+            max_iterations=2,
+        )
+        assert result.total_cost is not None
