@@ -15,9 +15,28 @@ class AIJudgeScorer:
         self.provider = provider
         self.criteria = criteria
 
-    async def score(self, content: str) -> list[ScoreResult]:
-        """Judge content against all criteria and return a ScoreResult per criterion."""
-        judgment = await self.provider.judge(content, self.criteria)
+    async def score(
+        self,
+        content: str,
+        image: bytes | None = None,
+        image_format: str = "png",
+    ) -> list[ScoreResult]:
+        """Judge content against criteria and return a ScoreResult per criterion.
+
+        When *image* is None, only criteria with ``requires_image=False`` are
+        scored. Image-requiring criteria are skipped entirely (not scored as 0).
+        """
+        if image is not None:
+            active_criteria = self.criteria
+        else:
+            active_criteria = [c for c in self.criteria if not c.requires_image]
+
+        if not active_criteria:
+            return []
+
+        judgment = await self.provider.judge(
+            content, active_criteria, image=image, image_format=image_format
+        )
 
         # Build a lookup by criterion name
         scored: dict[str, ScoreResult] = {}
@@ -30,9 +49,9 @@ class AIJudgeScorer:
                 details={"reasoning": judgment_score.reasoning},
             )
 
-        # Ensure every criterion has a result; fill zero for any unscored ones
+        # Ensure every active criterion has a result
         results: list[ScoreResult] = []
-        for criterion in self.criteria:
+        for criterion in active_criteria:
             if criterion.name in scored:
                 results.append(scored[criterion.name])
             else:

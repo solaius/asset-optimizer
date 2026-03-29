@@ -1,3 +1,13 @@
+import pytest
+
+from asset_optimizer.providers.base import (
+    Criterion,
+    JudgmentResult,
+    JudgmentScore,
+    Message,
+    TextProvider,
+)
+from asset_optimizer.scoring.ai_judge import AIJudgeScorer
 from asset_optimizer.scoring.base import ScoreResult
 from asset_optimizer.scoring.composite import CompositeScorer
 from asset_optimizer.scoring.heuristic import (
@@ -111,3 +121,69 @@ class TestScoreResult:
         assert result.criterion == "clarity"
         assert result.value == 7.5
         assert result.scorer_type == "heuristic"
+
+
+class _MockJudgeProvider(TextProvider):
+    """Mock provider that records whether image was passed."""
+
+    def __init__(self) -> None:
+        self.last_image: bytes | None = None
+
+    async def complete(self, messages: list[Message], **kwargs: object) -> str:
+        return ""
+
+    async def judge(
+        self,
+        content: str,
+        criteria: list[Criterion],
+        image: bytes | None = None,
+        image_format: str = "png",
+    ) -> JudgmentResult:
+        self.last_image = image
+        return JudgmentResult(
+            scores=[
+                JudgmentScore(criterion=c.name, score=7.0, reasoning="good")
+                for c in criteria
+            ]
+        )
+
+
+class TestAIJudgeScorerWithImage:
+    @pytest.mark.asyncio
+    async def test_score_with_image_passes_image_to_provider(self) -> None:
+        provider = _MockJudgeProvider()
+        criteria = [
+            Criterion(name="clarity", description="Clear?"),
+            Criterion(name="visual_quality", description="Sharp?", requires_image=True),
+        ]
+        scorer = AIJudgeScorer(provider=provider, criteria=criteria)
+        results = await scorer.score(
+            "test content", image=b"fake-png", image_format="png"
+        )
+        assert provider.last_image == b"fake-png"
+        assert len(results) == 2
+
+    @pytest.mark.asyncio
+    async def test_score_without_image_skips_image_criteria(self) -> None:
+        provider = _MockJudgeProvider()
+        criteria = [
+            Criterion(name="clarity", description="Clear?"),
+            Criterion(name="visual_quality", description="Sharp?", requires_image=True),
+        ]
+        scorer = AIJudgeScorer(provider=provider, criteria=criteria)
+        results = await scorer.score("test content")
+        # Only the text-only criterion should be scored
+        assert len(results) == 1
+        assert results[0].criterion == "clarity"
+        assert provider.last_image is None
+
+    @pytest.mark.asyncio
+    async def test_score_without_image_all_text_criteria(self) -> None:
+        provider = _MockJudgeProvider()
+        criteria = [
+            Criterion(name="clarity", description="Clear?"),
+            Criterion(name="specificity", description="Specific?"),
+        ]
+        scorer = AIJudgeScorer(provider=provider, criteria=criteria)
+        results = await scorer.score("test content")
+        assert len(results) == 2
