@@ -37,6 +37,10 @@ _IMAGE_PROVIDERS: dict[str, tuple[str, str]] = {
         "asset_optimizer.providers.image_providers.openai_image",
         "OpenAIImageProvider",
     ),
+    "gemini": (
+        "asset_optimizer.providers.image_providers.gemini_image",
+        "GeminiImageProvider",
+    ),
     "nano_banana": (
         "asset_optimizer.providers.image_providers.nano_banana",
         "NanoBananaProvider",
@@ -263,7 +267,7 @@ def create_image_provider(
         )
         return cls(base_url=base_url, api_key=api_key)  # type: ignore[no-any-return]
 
-    # openai_image
+    # openai_image and gemini both take (api_key, model)
     model = yaml_config.get("model") or os.environ.get(
         "AO_DEFAULT_IMAGE_MODEL", "dall-e-3"
     )
