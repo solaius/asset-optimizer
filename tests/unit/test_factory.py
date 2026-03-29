@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 from asset_optimizer.providers.factory import (
+    create_engine,
     create_image_provider,
     create_judge_provider,
     create_text_provider,
@@ -23,8 +24,13 @@ def _clean_env(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Remove all AO_ and provider env vars and prevent .env loading."""
     for key in list(os.environ):
         prefixes = (
-            "AO_", "OPENAI_", "ANTHROPIC_",
-            "GEMINI_", "NANO_BANANA_", "VLLM_", "OLLAMA_",
+            "AO_",
+            "OPENAI_",
+            "ANTHROPIC_",
+            "GEMINI_",
+            "NANO_BANANA_",
+            "VLLM_",
+            "OLLAMA_",
         )
         if key.startswith(prefixes):
             monkeypatch.delenv(key, raising=False)
@@ -104,16 +110,12 @@ class TestCreateTextProvider:
 
 
 class TestCreateJudgeProvider:
-    def test_falls_back_to_text_provider(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_falls_back_to_text_provider(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
         judge = create_judge_provider(name="openai")
         assert judge is not None
 
-    def test_separate_judge_provider(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_separate_judge_provider(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("AO_JUDGE_PROVIDER", "openai")
         monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
         judge = create_judge_provider()
@@ -150,3 +152,26 @@ class TestCreateImageProvider:
     def test_missing_key_raises(self) -> None:
         with pytest.raises(ValueError, match="No API key"):
             create_image_provider(name="openai_image")
+
+
+class TestCreateEngine:
+    def test_create_engine_text_only(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+        engine = create_engine(text_provider="openai")
+        assert engine is not None
+        assert engine.image_provider is None
+
+    def test_create_engine_with_image_provider(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+        engine = create_engine(text_provider="openai", image_provider="openai_image")
+        assert engine is not None
+        assert engine.image_provider is not None
+
+    def test_create_engine_no_image_provider_when_none(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+        engine = create_engine(text_provider="openai", image_provider=None)
+        assert engine.image_provider is None

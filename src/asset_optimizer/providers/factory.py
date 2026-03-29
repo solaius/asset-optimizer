@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING, Any
 from asset_optimizer.config import AppConfig, load_config
 
 if TYPE_CHECKING:
+    from asset_optimizer.core.engine import Engine
     from asset_optimizer.providers.base import TextProvider
     from asset_optimizer.providers.image_providers.base import ImageProvider
 
@@ -142,9 +143,11 @@ def create_text_provider(
     if name is None:
         name = os.environ.get("AO_DEFAULT_TEXT_PROVIDER")
     if name is None:
-        yaml_default = config.providers.text.get("default") if isinstance(
-            config.providers.text, dict
-        ) else None
+        yaml_default = (
+            config.providers.text.get("default")
+            if isinstance(config.providers.text, dict)
+            else None
+        )
         if yaml_default:
             name = str(yaml_default)
     if name is None:
@@ -168,8 +171,7 @@ def create_text_provider(
     if not api_key and name not in ("vllm", "ollama"):
         env_var = _API_KEY_ENV.get(name, "")
         msg = (
-            f"No API key for provider '{name}'."
-            f" Set {env_var} in .env or pass api_key="
+            f"No API key for provider '{name}'. Set {env_var} in .env or pass api_key="
         )
         raise ValueError(msg)
 
@@ -272,3 +274,22 @@ def create_image_provider(
         "AO_DEFAULT_IMAGE_MODEL", "dall-e-3"
     )
     return cls(api_key=api_key, model=model)  # type: ignore[no-any-return]
+
+
+def create_engine(
+    text_provider: str | None = None,
+    judge_provider: str | None = None,
+    image_provider: str | None = None,
+    config_path: Path | None = None,
+) -> Engine:
+    """Create an Engine with all providers auto-configured from args/config/env."""
+    from asset_optimizer.core.engine import Engine
+
+    text = create_text_provider(name=text_provider, config_path=config_path)
+    judge = create_judge_provider(name=judge_provider, config_path=config_path)
+    image = (
+        create_image_provider(name=image_provider, config_path=config_path)
+        if image_provider
+        else None
+    )
+    return Engine(provider=text, judge_provider=judge, image_provider=image)
