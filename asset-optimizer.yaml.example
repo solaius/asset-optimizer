@@ -1,0 +1,42 @@
+# Asset Optimizer Configuration
+# Copy to asset-optimizer.yaml and customize.
+# Supports ${ENV_VAR} interpolation for secrets.
+
+storage:
+  backend: sqlite                    # sqlite | postgres
+  sqlite_path: ./data/optimizer.db
+  # postgres_url: ${DATABASE_URL}
+
+providers:
+  text:
+    default: claude
+    claude:
+      api_key: ${ANTHROPIC_API_KEY}
+      model: claude-sonnet-4-20250514
+    openai:
+      api_key: ${OPENAI_API_KEY}
+      model: gpt-4o
+    # vllm:
+    #   base_url: http://localhost:8000/v1
+    #   model: meta-llama/Llama-3-70B
+    # ollama:
+    #   base_url: http://localhost:11434/v1
+    #   model: llama3
+  image:
+    default: openai_image
+    openai_image:
+      api_key: ${OPENAI_API_KEY}
+      model: image-01
+    # nano_banana:
+    #   api_key: ${NANO_BANANA_API_KEY}
+    #   endpoint: https://api.nanobanana.com/v1
+
+server:
+  host: 0.0.0.0
+  port: 8000
+
+defaults:
+  max_iterations: 20
+  min_improvement: 0.01
+  convergence_strategy: greedy       # greedy | target | budget
+  stagnation_limit: 5
