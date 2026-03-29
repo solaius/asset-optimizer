@@ -8,7 +8,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from asset_optimizer.api import deps
-from asset_optimizer.api.routes import evaluations, experiments, health, providers
+from asset_optimizer.api.routes import (
+    assets,
+    evaluations,
+    experiments,
+    health,
+    providers,
+)
 
 
 def create_app(db_path: Path | None = None) -> FastAPI:
@@ -40,5 +46,6 @@ def create_app(db_path: Path | None = None) -> FastAPI:
     app.include_router(evaluations.router)
     app.include_router(experiments.router)
     app.include_router(providers.router)
+    app.include_router(assets.router)
 
     return app

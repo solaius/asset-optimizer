@@ -161,6 +161,11 @@ class Repository:
         await self._session.refresh(asset_version)
         return asset_version
 
+    async def get_asset_version(
+        self, asset_version_id: uuid.UUID
+    ) -> AssetVersion | None:
+        return await self._session.get(AssetVersion, asset_version_id)
+
     async def list_asset_versions(self, iteration_id: uuid.UUID) -> list[AssetVersion]:
         stmt = (
             select(AssetVersion)
