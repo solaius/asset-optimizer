@@ -1,0 +1,125 @@
+# Strict evaluation for Luminth landing page hero image
+# Graders should be harsh. A 7 is genuinely good. A 9 is exceptional.
+# Most first-attempt prompts should score 2-4. Most generated images should score 3-5.
+
+name: luminth-hero-strict
+asset_type: image
+description: >
+  Strict evaluation for Luminth.ai hero image. Judges are instructed to be
+  demanding — a score of 7+ means genuinely production-ready. Mediocre work
+  that "looks okay" should score 4-5, not 7-8.
+
+criteria:
+  # --- TEXT-BASED CRITERIA (scored from prompt only) ---
+
+  - name: prompt_precision
+    description: >
+      Does the prompt name SPECIFIC visual elements with EXACT placement?
+      Vague words like "magical elements" or "various genres" score low.
+      Specific words like "a crumbling stone tower at left-third with cyan
+      rune-light bleeding from its windows" score high.
+    max_score: 10
+    rubric: |
+      1-2: Entirely vague. "A cool fantasy image" level.
+      3-4: Names a few things but no spatial placement or visual detail.
+      5-6: Has specific subjects AND spatial placement but missing lighting,
+           camera angle, or texture descriptions.
+      7-8: Precise subjects, placement, lighting, and mood. A skilled artist
+           could paint this from the description alone.
+      9-10: Art director level. Every element placed, lit, textured, and
+            mood-set. Includes negative space strategy and text overlay zones.
+
+  - name: brand_encoding
+    description: >
+      Does the prompt encode Luminth's SPECIFIC visual identity? Not just
+      "dark background" but the exact palette (brown-black, teal, gold),
+      the illuminated manuscript texture, the fantasy-meets-technology
+      aesthetic, and the feeling of worlds being crafted by hand and machine.
+    max_score: 10
+    rubric: |
+      1-2: No brand identity. Generic dark fantasy.
+      3-4: Mentions "dark" or "fantasy" but nothing Luminth-specific.
+      5-6: Gets the palette right but misses the manuscript texture or
+           the technology fusion. Feels like generic D&D art.
+      7-8: Nails palette + manuscript aesthetic + tech fusion. Distinctly
+           Luminth — couldn't be mistaken for another product.
+      9-10: Complete brand system encoded. Someone seeing just this image
+            would understand Luminth's identity without reading any text.
+
+  - name: genre_multiplicity
+    description: >
+      Does the prompt show AT LEAST 4 distinct genre worlds coexisting in
+      one composition? Each genre must be visually distinct and recognizable
+      at a glance (not just color variations of the same scene). Fantasy,
+      sci-fi, cyberpunk, western, horror, pirate — Luminth serves them all.
+    max_score: 10
+    rubric: |
+      1-2: Single genre or no genre elements at all.
+      3-4: Two genres hinted at but not visually distinct.
+      5-6: Three genres present but they blur together or one dominates.
+      7-8: Four+ genres clearly distinct, each with signature visual
+           elements (castle, spaceship, neon city, dusty saloon, etc.)
+      9-10: Five+ genres seamlessly composed. Each instantly recognizable.
+            The composition itself tells the story: "this tool does everything."
+
+  # --- VISUAL CRITERIA (scored from the generated image) ---
+
+  - name: image_professionalism
+    description: >
+      Could this image be used on a real SaaS landing page TODAY without
+      editing? Check for: AI artifacts (extra fingers, melted text, impossible
+      geometry), consistent lighting, sharp focus, professional composition,
+      and appropriate resolution. Be ruthless about AI tell-tales.
+    max_score: 10
+    requires_image: true
+    rubric: |
+      1-2: Obviously AI-generated garbage. Artifacts everywhere.
+      3-4: Passable at thumbnail size but falls apart on inspection.
+           Has noticeable artifacts or inconsistent lighting.
+      5-6: Clean enough for a blog post but not hero-image quality.
+           Minor issues that a designer would need to fix.
+      7-8: Production-ready. No visible artifacts, professional lighting,
+           strong composition. Could ship on a real site.
+      9-10: Exceptional. Indistinguishable from professional digital art.
+            Perfect lighting, composition, and detail.
+
+  - name: visual_brand_match
+    description: >
+      Does the generated image ACTUALLY look like it belongs on luminth.ai?
+      Check the real criteria: dark warm background (not pure black, not gray),
+      teal and gold accents (not blue and yellow), illuminated/textured feel
+      (not flat digital), and the "crafted by hand and machine" quality.
+    max_score: 10
+    requires_image: true
+    rubric: |
+      1-2: Wrong palette entirely. Bright, pastel, or corporate.
+      3-4: Dark but wrong undertones. Uses blue instead of teal, or
+           yellow instead of gold. Feels generic dark fantasy.
+      5-6: Palette is close but the texture/feel is wrong. Looks like
+           stock art, not an illuminated manuscript meets tech.
+      7-8: Nails the palette AND the texture. Distinctly Luminth.
+      9-10: Perfect brand embodiment. The warmth, the glow, the craft
+            — someone who knows Luminth would recognize this instantly.
+
+  - name: hero_usability
+    description: >
+      Does the image work as a WEBSITE HERO? Check: is there clear negative
+      space for a headline + subtitle overlay? Does it have proper aspect
+      ratio for a full-width banner? Does the visual weight guide the eye
+      correctly? Would white or light text be readable over it?
+    max_score: 10
+    requires_image: true
+    rubric: |
+      1-2: Unusable as a hero. Too busy, wrong aspect ratio, no text space.
+      3-4: Has some dark areas but they're in the wrong place for text.
+           Text would be hard to read over most of the image.
+      5-6: Workable with significant CSS overlay/gradient tricks.
+      7-8: Good hero candidate. Clear text zone, appropriate visual weight,
+           proper aspect ratio. Minor tweaks needed.
+      9-10: Perfect hero image. Obvious text zone, visual hierarchy guides
+            the eye from image to text area, professional aspect ratio.
+
+scorer_config:
+  type: composite
+  heuristic_weight: 0.0
+  ai_judge_weight: 1.0
