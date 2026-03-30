@@ -57,6 +57,48 @@ class ExperimentResponse(BaseModel):
     updated_at: str
 
 
+class IterationResponse(BaseModel):
+    id: str
+    experiment_id: str
+    number: int
+    status: str
+    strategy_used: str
+    improvement_prompt: str | None
+    feedback: str | None
+    duration_ms: int | None
+    created_at: str
+
+
+class ScoreResponse(BaseModel):
+    criterion_name: str
+    value: float
+    max_value: float
+    scorer_type: str
+    details: dict[str, Any]
+
+
+class AssetVersionResponse(BaseModel):
+    id: str
+    role: str
+    content: str | None
+    file_path: str | None
+    metadata: dict[str, Any]
+
+
+class IterationDetailResponse(BaseModel):
+    id: str
+    experiment_id: str
+    number: int
+    status: str
+    strategy_used: str
+    improvement_prompt: str | None
+    feedback: str | None
+    duration_ms: int | None
+    created_at: str
+    scores: list[ScoreResponse]
+    asset_versions: list[AssetVersionResponse]
+
+
 class HealthResponse(BaseModel):
     status: str
     version: str

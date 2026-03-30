@@ -89,3 +89,45 @@ async def delete_experiment(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Experiment not found",
         )
+
+
+@router.get("/{experiment_id}/iterations")
+async def list_iterations(experiment_id: uuid.UUID, repo: RepoDep):
+    """List all iterations for an experiment with scores and asset versions."""
+    iterations = await repo.list_iterations(experiment_id)
+    results = []
+    for it in iterations:
+        scores = await repo.list_scores(it.id)
+        asset_versions = await repo.list_asset_versions(it.id)
+        results.append({
+            "id": str(it.id),
+            "experiment_id": str(it.experiment_id),
+            "number": it.number,
+            "status": str(it.status),
+            "strategy_used": it.strategy_used,
+            "improvement_prompt": it.improvement_prompt,
+            "feedback": it.feedback,
+            "duration_ms": it.duration_ms,
+            "created_at": it.created_at.isoformat(),
+            "scores": [
+                {
+                    "criterion_name": s.criterion_name,
+                    "value": s.value,
+                    "max_value": s.max_value,
+                    "scorer_type": str(s.scorer_type),
+                    "details": s.details,
+                }
+                for s in scores
+            ],
+            "asset_versions": [
+                {
+                    "id": str(av.id),
+                    "role": str(av.role),
+                    "content": av.content,
+                    "file_path": av.file_path,
+                    "metadata": av.metadata_,
+                }
+                for av in asset_versions
+            ],
+        })
+    return results
