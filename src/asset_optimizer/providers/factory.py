@@ -269,9 +269,15 @@ def create_image_provider(
         )
         return cls(base_url=base_url, api_key=api_key)  # type: ignore[no-any-return]
 
-    # openai_image and gemini both take (api_key, model)
-    model = yaml_config.get("model") or os.environ.get(
-        "AO_DEFAULT_IMAGE_MODEL", "dall-e-3"
+    # Resolve model — use provider-specific defaults, not the global
+    # AO_DEFAULT_IMAGE_MODEL (which may belong to a different provider)
+    default_image_models: dict[str, str] = {
+        "openai_image": "dall-e-3",
+        "gemini": "gemini-2.0-flash-preview-image-generation",
+    }
+    model = (
+        yaml_config.get("model")
+        or default_image_models.get(name, "dall-e-3")
     )
     return cls(api_key=api_key, model=model)  # type: ignore[no-any-return]
 
