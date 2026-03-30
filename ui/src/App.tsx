@@ -4,6 +4,7 @@ import { Dashboard } from './pages/Dashboard'
 import { ExperimentList } from './pages/ExperimentList'
 import { ExperimentDetail } from './pages/ExperimentDetail'
 import { EvaluationList } from './pages/EvaluationList'
+import { EvaluationDetail } from './pages/EvaluationDetail'
 import { ProviderSettings } from './pages/ProviderSettings'
 
 const queryClient = new QueryClient()
@@ -34,6 +35,7 @@ export default function App() {
             <Route path="/experiments" element={<ExperimentList />} />
             <Route path="/experiments/:id" element={<ExperimentDetail />} />
             <Route path="/evaluations" element={<EvaluationList />} />
+            <Route path="/evaluations/:id" element={<EvaluationDetail />} />
             <Route path="/providers" element={<ProviderSettings />} />
           </Routes>
         </Layout>

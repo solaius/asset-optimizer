@@ -1,12 +1,6 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
-interface ScoreDataPoint {
-  iteration: number
-  score: number
-  [key: string]: number
-}
-
-export function ScoreChart({ data }: { data: ScoreDataPoint[] }) {
+export function ScoreChart({ data }: { data: Record<string, number>[] }) {
   if (!data.length) return <p className="text-gray-500">No data yet.</p>
 
   const keys = Object.keys(data[0]).filter(k => k !== 'iteration')

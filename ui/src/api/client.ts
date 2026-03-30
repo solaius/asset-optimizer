@@ -17,7 +17,7 @@ export interface Evaluation {
   name: string
   asset_type: string
   description: string
-  criteria: Array<{ name: string; description: string; max_score: number; requires_image?: boolean }>
+  criteria: Array<{ name: string; description: string; max_score: number; rubric?: string; requires_image?: boolean }>
   scorer_config: Record<string, unknown>
   created_at: string
   updated_at: string
@@ -32,10 +32,38 @@ export interface Experiment {
   status: string
   config: Record<string, unknown>
   best_score: number | null
-  best_image_asset_version_id: string | null
-  total_cost: number | null
   created_at: string
   updated_at: string
+}
+
+export interface ScoreData {
+  criterion_name: string
+  value: number
+  max_value: number
+  scorer_type: string
+  details: { reasoning?: string; [key: string]: unknown }
+}
+
+export interface AssetVersionData {
+  id: string
+  role: string
+  content: string | null
+  file_path: string | null
+  metadata: Record<string, unknown>
+}
+
+export interface IterationData {
+  id: string
+  experiment_id: string
+  number: number
+  status: string
+  strategy_used: string
+  improvement_prompt: string | null
+  feedback: string | null
+  duration_ms: number | null
+  created_at: string
+  scores: ScoreData[]
+  asset_versions: AssetVersionData[]
 }
 
 export const api = {
@@ -53,6 +81,7 @@ export const api = {
     get: (id: string) => request<Experiment>(`/experiments/${id}`),
     create: (data: Partial<Experiment>) => request<Experiment>('/experiments', { method: 'POST', body: JSON.stringify(data) }),
     delete: (id: string) => request<void>(`/experiments/${id}`, { method: 'DELETE' }),
+    iterations: (id: string) => request<IterationData[]>(`/experiments/${id}/iterations`),
   },
 
   providers: {

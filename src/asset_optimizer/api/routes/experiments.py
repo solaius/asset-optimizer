@@ -64,33 +64,6 @@ async def list_experiments(
     return [_to_response(e) for e in experiments]
 
 
-@router.get("/{experiment_id}", response_model=ExperimentResponse)
-async def get_experiment(
-    experiment_id: uuid.UUID, repo: RepoDep
-) -> ExperimentResponse:
-    """Get a single experiment by ID."""
-    experiment = await repo.get_experiment(experiment_id)
-    if experiment is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Experiment not found",
-        )
-    return _to_response(experiment)
-
-
-@router.delete("/{experiment_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_experiment(
-    experiment_id: uuid.UUID, repo: RepoDep
-) -> None:
-    """Delete an experiment by ID."""
-    deleted = await repo.delete_experiment(experiment_id)
-    if not deleted:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Experiment not found",
-        )
-
-
 @router.get("/{experiment_id}/iterations")
 async def list_iterations(experiment_id: uuid.UUID, repo: RepoDep):
     """List all iterations for an experiment with scores and asset versions."""
@@ -131,3 +104,30 @@ async def list_iterations(experiment_id: uuid.UUID, repo: RepoDep):
             ],
         })
     return results
+
+
+@router.get("/{experiment_id}", response_model=ExperimentResponse)
+async def get_experiment(
+    experiment_id: uuid.UUID, repo: RepoDep
+) -> ExperimentResponse:
+    """Get a single experiment by ID."""
+    experiment = await repo.get_experiment(experiment_id)
+    if experiment is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Experiment not found",
+        )
+    return _to_response(experiment)
+
+
+@router.delete("/{experiment_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_experiment(
+    experiment_id: uuid.UUID, repo: RepoDep
+) -> None:
+    """Delete an experiment by ID."""
+    deleted = await repo.delete_experiment(experiment_id)
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Experiment not found",
+        )

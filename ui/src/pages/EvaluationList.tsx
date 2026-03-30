@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
 import { api } from '../api/client'
 
 export function EvaluationList() {
@@ -22,7 +23,9 @@ export function EvaluationList() {
           <tbody className="divide-y divide-gray-200">
             {evaluations?.map(ev => (
               <tr key={ev.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 font-medium">{ev.name}</td>
+                <td className="px-4 py-3 font-medium">
+                  <Link to={`/evaluations/${ev.id}`} className="text-blue-600 hover:underline">{ev.name}</Link>
+                </td>
                 <td className="px-4 py-3 text-sm text-gray-500">{ev.asset_type}</td>
                 <td className="px-4 py-3 text-sm text-gray-500">{ev.criteria.length} criteria</td>
                 <td className="px-4 py-3 text-sm text-gray-500">{new Date(ev.created_at).toLocaleDateString()}</td>
