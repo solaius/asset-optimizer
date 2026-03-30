@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Asset Optimizer — uses the autoimprove pattern to automatically optimize different asset types (prompts, skills, images). Dual-use: importable Python library and standalone service (CLI + API + web UI).
 
+Supports a visual optimization loop: when an image provider is configured, the engine generates an image each iteration and uses multimodal AI judging (GPT-4o vision) to score the actual image. Provider factory functions (`create_text_provider()`, `create_image_provider()`, `create_engine()` in `asset_optimizer.providers.factory`) auto-wire from `.env` + YAML config and are exported from the top-level `asset_optimizer` package.
+
 ## Tech Stack
 
 - **Language**: Python 3.12
@@ -24,6 +26,9 @@ Asset Optimizer — uses the autoimprove pattern to automatically optimize diffe
 ```bash
 # Install dependencies
 uv sync
+
+# Configure providers (copy and edit .env)
+cp .env.example .env
 
 # Run all tests
 uv run pytest
@@ -46,13 +51,16 @@ uv run asset-optimizer serve
 
 # Run CLI
 uv run asset-optimizer --help
+
+# Run example scripts
+uv run python examples/img-prompt-enhancement/run_basic.py
 ```
 
 ## Architecture
 
 - `src/asset_optimizer/core/` — Engine, experiment, iteration, convergence
 - `src/asset_optimizer/assets/` — Asset type protocol and implementations
-- `src/asset_optimizer/providers/` — AI provider abstraction (text + image)
+- `src/asset_optimizer/providers/` — AI provider abstraction (text + image); `factory.py` exports `create_text_provider()`, `create_judge_provider()`, `create_image_provider()`, `create_engine()`
 - `src/asset_optimizer/scoring/` — Heuristic, AI-judged, composite scorers
 - `src/asset_optimizer/storage/` — SQLAlchemy models, repository, migrations
 - `src/asset_optimizer/api/` — FastAPI REST API + WebSocket

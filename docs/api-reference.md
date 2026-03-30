@@ -19,6 +19,8 @@ and `/redoc`.
 | GET | `/api/v1/experiments` | List experiments |
 | GET | `/api/v1/experiments/{id}` | Get experiment by ID |
 | DELETE | `/api/v1/experiments/{id}` | Delete an experiment |
+| GET | `/api/v1/experiments/{id}/iterations` | List iterations with scores and asset versions |
+| GET | `/api/v1/assets/{id}/image` | Serve a generated image file |
 
 ## Health
 
@@ -204,6 +206,54 @@ Get a single experiment by UUID. Returns 404 if not found.
 ### DELETE /api/v1/experiments/{experiment_id}
 
 Delete an experiment. Returns 204 on success, 404 if not found.
+
+### GET /api/v1/experiments/{experiment_id}/iterations
+
+Returns all iterations for an experiment, ordered by iteration number. Each entry
+includes per-criterion scores, the asset version content, and image metadata if
+image generation was enabled.
+
+**Response 200:**
+
+```json
+[
+  {
+    "id": "a1b2c3d4-...",
+    "experiment_id": "7c9e6679-...",
+    "iteration": 1,
+    "input_score": 4.2,
+    "output_score": 5.8,
+    "accepted": true,
+    "duration_ms": 3142,
+    "image_format": "png",
+    "scores": [
+      {
+        "criterion": "clarity",
+        "value": 6.0,
+        "max_value": 10.0,
+        "reasoning": "The prompt is clear but lacks specificity on style."
+      }
+    ],
+    "asset_version": {
+      "id": "...",
+      "content": "A serene mountain lake at golden hour..."
+    }
+  }
+]
+```
+
+Returns 404 if the experiment does not exist.
+
+## Assets
+
+### GET /api/v1/assets/{asset_version_id}/image
+
+Serves the generated image for a given asset version. Returns the raw image bytes
+with the appropriate `Content-Type` header (`image/png` or `image/jpeg`).
+
+Returns 404 if the asset version does not exist or has no associated image.
+
+**Response 200:** Binary image data with `Content-Type: image/png` (or `image/jpeg`).
 
 ## Error Responses
 

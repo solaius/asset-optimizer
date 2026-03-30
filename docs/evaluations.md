@@ -78,6 +78,12 @@ scorer_config:
 | `description` | Yes | What this criterion measures — shown to the AI judge |
 | `max_score` | No | Maximum score value (default: `10`) |
 | `rubric` | No | Detailed scoring guide — significantly improves AI judge accuracy |
+| `requires_image` | No | If `true`, this criterion is only scored when an image is provided (default: `false`) |
+
+`requires_image: true` is used for visual criteria that require the AI judge to look
+at a generated image (e.g. composition, color palette, style match). These criteria
+are silently skipped in text-only runs and only scored when the engine's
+`image_provider` is set.
 
 ## Scoring Concepts
 
@@ -145,6 +151,19 @@ Good rubrics dramatically improve AI judge consistency:
 
 5. **Use domain language.** For prompt optimization, mention "ambiguity" and
    "instruction-following". For image prompts, mention "composition" and "style".
+
+## Built-in Evaluation Files
+
+The repository ships with three ready-to-use evaluations in `evaluations/`:
+
+| File | Asset type | Purpose |
+|---|---|---|
+| `prompt-clarity.yaml` | `prompt` | Evaluates clarity, specificity, and effectiveness of text prompts |
+| `image-visual.yaml` | `image` | Mixed text + visual criteria; includes `requires_image: true` criteria for composition, color, and style match |
+| `luminth-hero-strict.yaml` | `image` | Strict visual evaluation for Luminth hero image generation with detailed rubrics |
+
+`image-visual.yaml` uses `requires_image: true` on visual criteria so the text-only
+scorer can still run when no image provider is configured.
 
 ## Loading Evaluations in Code
 

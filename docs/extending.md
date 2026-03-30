@@ -179,7 +179,8 @@ engine = Engine(provider=provider)
 
 Image providers extend `ImageProvider` from
 `asset_optimizer.providers.image_providers.base` and implement one async method:
-`generate`.
+`generate`. When an image provider is set on the `Engine`, the visual optimization
+loop activates automatically — no other changes are needed.
 
 ### Step 1: Implement the provider
 
@@ -217,6 +218,91 @@ class StabilityProvider(ImageProvider):
             format="png",
             metadata={"model": self.model, "prompt": prompt},
         )
+```
+
+After implementing the provider, register it in `asset-optimizer.yaml` or set the
+`IMAGE_PROVIDER` environment variable to use it via `create_image_provider()`.
+
+### Step 2: Use it with the engine
+
+```python
+from asset_optimizer import Engine
+from asset_optimizer.providers.openai_provider import OpenAITextProvider
+from my_project.providers.stability_provider import StabilityProvider
+
+text_provider  = OpenAITextProvider(model="gpt-4o", api_key="sk-...")
+image_provider = StabilityProvider(api_key="...")
+
+engine = Engine(
+    provider=text_provider,
+    judge_provider=text_provider,
+    image_provider=image_provider,   # enables visual optimization loop
+)
+```
+
+## Creating Visual Evaluations with requires_image
+
+When building evaluations for image optimization, separate criteria that evaluate
+the *text* of the prompt from criteria that require looking at the *generated image*.
+Mark image-only criteria with `requires_image: true`:
+
+```yaml
+# evaluations/my-visual-eval.yaml
+name: my-visual-eval
+asset_type: image
+description: Combined text + visual evaluation
+
+criteria:
+  # Text criteria — scored in every run
+  - name: prompt_specificity
+    description: "Does the prompt clearly describe the desired image?"
+    max_score: 10
+    rubric: |
+      1-3: Vague — could produce many different images
+      4-6: Reasonably specific
+      7-10: Precise — subject, style, lighting, and mood all described
+
+  - name: style_guidance
+    description: "Does the prompt specify an artistic style or reference?"
+    max_score: 10
+
+  # Visual criteria — only scored when image_provider is set
+  - name: visual_quality
+    description: "Is the generated image sharp, well-composed, and artifact-free?"
+    max_score: 10
+    requires_image: true
+    rubric: |
+      1-3: Blurry, distorted, or obvious artifacts
+      4-6: Acceptable quality with minor flaws
+      7-10: Sharp, well-exposed, no artifacts
+
+  - name: visual_relevance
+    description: "Does the generated image match what the prompt requested?"
+    max_score: 10
+    requires_image: true
+
+  - name: style_match
+    description: "Does the image reflect the requested artistic style?"
+    max_score: 10
+    requires_image: true
+
+scorer_config:
+  type: composite
+  heuristic_weight: 0.0
+  ai_judge_weight: 1.0
+```
+
+In code:
+
+```python
+from asset_optimizer.core.evaluation import CriterionConfig
+
+criterion = CriterionConfig(
+    name="composition",
+    description="Is the subject well-framed and compositionally balanced?",
+    max_score=10,
+    requires_image=True,   # skipped without image_provider
+)
 ```
 
 ## Adding a New Scorer

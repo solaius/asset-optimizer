@@ -21,14 +21,15 @@ uv sync
 and installs both runtime and dev dependencies. No manual `pip install` or
 `venv` creation required.
 
-Copy the example config for local development:
+Copy the example env file and YAML config for local development:
 
 ```bash
+cp .env.example .env
 cp asset-optimizer.yaml.example asset-optimizer.yaml
 ```
 
-Edit `asset-optimizer.yaml` to add your API keys, or set them as environment
-variables.
+Edit `.env` to add your API keys (preferred), or add them to `asset-optimizer.yaml`
+using `${VAR}` interpolation.
 
 ## Running the Application
 
@@ -63,7 +64,8 @@ uv run pytest --cov=asset_optimizer --cov-report=term-missing
 Run a specific test file:
 
 ```bash
-uv run pytest tests/test_engine.py -v
+uv run pytest tests/unit/test_engine.py -v
+uv run pytest tests/unit/test_config.py -v
 ```
 
 Run tests matching a pattern:
@@ -119,6 +121,15 @@ The workflow is:
 3. Refactor if needed, keeping tests green
 4. Run `uv run ruff check . && uv run mypy src/ && uv run pytest` before committing
 
+### Running Example Scripts
+
+The `examples/` directory contains runnable scripts that demonstrate the library:
+
+```bash
+# Image prompt enhancement (requires IMAGE_PROVIDER set in .env)
+uv run python examples/img-prompt-enhancement/run_basic.py
+```
+
 ### File Layout
 
 - Source code lives in `src/asset_optimizer/`
@@ -126,6 +137,7 @@ The workflow is:
 - Evaluation YAML files go in `evaluations/`
 - Asset files go in `assets/`
 - Deployment files go in `deploy/`
+- Example scripts go in `examples/`
 
 ### Import Style
 
